@@ -13,8 +13,9 @@ parameters:
 tasks:
   core:
     import: /toolbox/toolbox-variant/variant-lib/utils.yaml
+  git:
+    import: /toolbox/toolbox-artifact/variant-lib/git.yaml
   build:
-    # TODO: Move into deps
     import: /toolbox/toolbox-artifact/variant-lib/utils.yaml
 
   init:
@@ -38,26 +39,10 @@ tasks:
         fi
       fi
 
-  TOOLBOX_GIT_REPO:
-    script: |
-      if [ !  -z ${TOOLBOX_GIT_REPO} ]; then
-        echo "${TOOLBOX_GIT_REPO}"
-      else
-        git config --get remote.origin.url
-      fi
-
-  TOOLBOX_ARTIFACT_REPO:
-    script: |
-      if [ !  -z ${TOOLBOX_ARTIFACT_REPO} ]; then
-        echo "${TOOLBOX_ARTIFACT_REPO}"
-      else
-        git config --get remote.origin.url
-      fi
-
   branch:
     parameters:
-    - name: TOOLBOX_GIT_REPO
-    - name: TOOLBOX_GIT_REF
+    - name: git.TOOLBOX_GIT_REPO
+    - name: git.TOOLBOX_GIT_REF
     - name: TOOLBOX_ARTIFACT_REPO
     tasks:
       prepare:
@@ -65,16 +50,16 @@ tasks:
         - task: init
         - task: build.commands.ref.prepare
           arguments:
-            source_repo: "{{ .TOOLBOX_GIT_REPO }}"
-            source_ref: "{{ .TOOLBOX_GIT_REF }}"
+            source_repo: "{{ .git.TOOLBOX_GIT_REPO }}"
+            source_ref: "{{ .git.TOOLBOX_GIT_REF }}"
             target_repo: "{{ .TOOLBOX_ARTIFACT_REPO }}"
-            target_ref_suffix: "{{ .TOOLBOX_GIT_REF }}"
+            target_ref_suffix: "{{ .git.TOOLBOX_GIT_REF }}"
       push:
         steps:
         - task: init
         - task: build.commands.ref.push
           arguments:
-            target_ref_suffix: "{{ .TOOLBOX_GIT_REF }}"
+            target_ref_suffix: "{{ .git.TOOLBOX_GIT_REF }}"
 
   tag:
     parameters:
@@ -87,8 +72,8 @@ tasks:
         - task: init
         - task: build.commands.ref.prepare
           arguments:
-            source_repo: "{{ .TOOLBOX_GIT_REPO }}"
-            source_ref: "{{ .TOOLBOX_GIT_REF }}"
+            source_repo: "{{ .git.TOOLBOX_GIT_REPO }}"
+            source_ref: "{{ .git.TOOLBOX_GIT_REF }}"
             target_repo: "{{ .TOOLBOX_ARTIFACT_REPO }}"
             target_ref_suffix: "{{ .TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS }}"
       push:
@@ -99,5 +84,5 @@ tasks:
             target_ref_suffix: "{{ .TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS }}"
         - task: build.commands.push_tag
           arguments:
-            target_ref_suffix: "{{ .TOOLBOX_GIT_REF }}"
+            target_ref_suffix: "{{ .git.TOOLBOX_GIT_REF }}"
 
