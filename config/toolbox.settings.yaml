@@ -1,0 +1,11 @@
+config:
+  toolbox-artifact:
+    from: config.toolbox-variant
+    image: aroq/toolbox-artifact:dev
+    entrypoint_override: true
+    tool_dirs:
+      - /toolbox/toolbox-artifact
+    config_context_prefix:
+      - toolbox
+    config_dir_prefix:
+      - toolbox

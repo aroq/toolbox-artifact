@@ -1,0 +1,165 @@
+#!/usr/bin/env variant
+# vi: ft=yaml
+
+autoenv: true
+bindParamsFromEnv: true
+
+parameters:
+- name: TOOLBOX_ARTIFACT_WORKING_DIR
+  default: .docroot
+
+- name: TOOLBOX_CICD_BUILD_SOURCE_DIR
+  default: .
+
+- name: TOOLBOX_ARTIFACT_SOURCE_DIR_PATTERN
+  default: .
+
+- name: TOOLBOX_ARTIFACT_TARGET_BRANCH_PREFIX
+  default: deliverables_
+
+- name: TOOLBOX_ARTIFACT_TARGET_TAG_PREFIX
+  default: stable--
+
+- name: TOOLBOX_ARTIFACT_GITIGNORE_FILE
+  default: .gitignore.deliverables
+
+tasks:
+  commands:
+    parameters:
+    - name: source_repo
+      default: ""
+    - name: target_repo
+      default: ""
+    - name: source_ref
+      default: ""
+    - name: target_ref
+      default: ""
+    - name: target_ref_suffix
+      default: ""
+    tasks:
+      ref:
+        tasks:
+          prepare:
+            steps:
+            - task: core.exec
+              arguments:
+                title: Prepare & clean the working dir
+                cmd: |
+                  rm -fR {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}
+                  mkdir -p {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}
+            - task: build.commands.prepare.source
+              arguments:
+                source_repo: "{{ .source_repo }}"
+                source_ref: "{{ .source_ref }}"
+            - task: build.commands.prepare.target
+              arguments:
+                target_repo: "{{ .target_repo }}"
+                source_ref: "{{ .source_ref }}"
+                target_ref: "{{ .TOOLBOX_ARTIFACT_TARGET_BRANCH_PREFIX }}{{ .target_ref_suffix }}"
+            - task: build.commands.copy_source_to_target
+          push:
+            steps:
+            - task: git.config.identity
+              arguments:
+                dir: "{{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target"
+                args: ""
+            - task: build.commands.push_target
+              arguments:
+                target_ref: "{{ .TOOLBOX_ARTIFACT_TARGET_BRANCH_PREFIX }}{{ .target_ref_suffix }}"
+
+      prepare:
+        tasks:
+          source:
+            steps:
+            - task: core.exec
+              arguments:
+                title: Prepare source
+                cmd: |
+                  if [ ! "{{ .TOOLBOX_CICD_BUILD_SOURCE_DIR }}" = "." ]; then
+                    git clone -b {{ .source_ref }} --single-branch --depth 1 {{ .source_repo }} {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/{{ .TOOLBOX_CICD_BUILD_SOURCE_DIR }}
+                    cd {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/{{ .TOOLBOX_CICD_BUILD_SOURCE_DIR }}
+                    git checkout {{ .source_ref }}
+                  fi
+
+          target:
+            steps:
+            - task: core.exec
+              arguments:
+                title: Prepare target
+                cmd: |
+                  set -euo pipefail
+                  (
+                    git ls-remote --exit-code --heads {{ .target_repo }} {{ .target_ref }} && \
+                    git clone -b {{ .target_ref }} --single-branch --depth 1 {{ .target_repo }} {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target && \
+                    cd {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target && \
+                    git checkout {{ .target_ref }} && \
+                    echo "Remote branch {{ .target_ref }} was found"
+                  ) || \
+                  (
+                    echo "Remote branch {{ .target_ref }} was not found"
+                    git clone --depth 1 {{ .target_repo }} {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
+                    cd {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
+                    git checkout -b {{ .target_ref }};
+                  )
+
+      copy_source_to_target:
+        steps:
+        - task: core.exec
+          arguments:
+            title: Copy from source dir to target dir
+            cmd: |
+              cd {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
+
+              # Find all first level files & directories except ".git" and remove it
+              fd -H -I -E .git '^.*$' -d 1 --exec rm -rf {};
+
+              cd ../..;
+
+              # Copy all files except ".git" from source dir to target dir
+              if [ ! "{{ .TOOLBOX_CICD_BUILD_SOURCE_DIR }}" = "." ]; then
+                TOOLBOX_CICD_BUILD_SOURCE_DIR="{{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/{{ .TOOLBOX_CICD_BUILD_SOURCE_DIR }}"
+              else
+                TOOLBOX_CICD_BUILD_SOURCE_DIR="."
+              fi
+
+              rsync -a \
+                --exclude=".git" \
+                ${TOOLBOX_CICD_BUILD_SOURCE_DIR}/{{ .TOOLBOX_ARTIFACT_SOURCE_DIR_PATTERN }} \
+                {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
+
+              # Save current revision into REVISION_SOURCE file
+              rm -f {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target/REVISION_SOURCE
+              git rev-parse --short HEAD > {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target/REVISION_SOURCE
+
+      push_target:
+        steps:
+        - task: core.exec
+          arguments:
+            title: "Push deliverables to the target branch \"{{ .target_ref }}\""
+            cmd: |
+              cd {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
+              # TODO: Check if there are any changes. No need to push if no changes.
+
+              if [[ -f {{ .TOOLBOX_ARTIFACT_GITIGNORE_FILE }} ]]; then
+                rm -f .gitignore
+                cp {{ .TOOLBOX_ARTIFACT_GITIGNORE_FILE }} .gitignore
+              else
+                echo "Provide {{ .TOOLBOX_ARTIFACT_GITIGNORE_FILE }}"
+              fi
+
+              git add --all;
+              git commit --allow-empty --quiet --no-verify -m "Deliverables update";
+              git push origin {{ .target_ref }};
+
+
+      push_tag:
+        steps:
+        - task: core.exec
+          arguments:
+            title: "Push deliverables to the target tag \"{{ .TOOLBOX_ARTIFACT_TARGET_TAG_PREFIX }}{{ .target_ref_suffix }}\""
+            cmd: |
+              cd {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
+              git tag "{{ .target_ref }}"
+              git push origin {{ .TOOLBOX_ARTIFACT_TARGET_TAG_PREFIX }}{{ .target_ref_suffix }}
+
+
