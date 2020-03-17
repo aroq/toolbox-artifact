@@ -159,7 +159,7 @@ tasks:
             title: "Push deliverables to the target tag \"{{ .TOOLBOX_ARTIFACT_TARGET_TAG_PREFIX }}{{ .target_ref_suffix }}\""
             cmd: |
               cd {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
-              git tag "{{ .target_ref }}"
+              git tag "{{ .TOOLBOX_ARTIFACT_TARGET_TAG_PREFIX }}{{ .target_ref_suffix }}"
               git push origin {{ .TOOLBOX_ARTIFACT_TARGET_TAG_PREFIX }}{{ .target_ref_suffix }}
 
 
