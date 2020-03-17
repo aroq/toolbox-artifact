@@ -27,16 +27,12 @@ tasks:
           cp toolbox/.secrets/id_rsa /root/.ssh/id_rsa
           chmod 400 /root/.ssh/id_rsa
 
-  TOOLBOX_GIT_REF:
+  TOOLBOX_ARTIFACT_REPO:
     script: |
-      if [ !  -z ${TOOLBOX_GIT_REF} ]; then
-        echo "${TOOLBOX_GIT_REF}"
+      if [ !  -z ${TOOLBOX_ARTIFACT_REPO} ]; then
+        echo "${TOOLBOX_ARTIFACT_REPO}"
       else
-        if [ -z ${CI_COMMIT_REF_NAME+x} ]; then
-          git symbolic-ref -q --short HEAD || git describe --tags --exact-match
-        else
-          echo ${CI_COMMIT_REF_NAME}
-        fi
+        git config --get remote.origin.url
       fi
 
   branch:
