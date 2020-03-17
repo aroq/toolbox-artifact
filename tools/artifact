@@ -7,8 +7,15 @@ bindParamsFromEnv: true
 parameters:
 - name: CI_COMMIT_REF_NAME
   default: ""
+
 - name: TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS
   default: tags
+
+- name: TOOLBOX_ARTIFACT_ID_RSA_KEY_FILE
+  default: id_rsa
+
+- name: TOOLBOX_SECRETS_DIR
+  default: .secrets
 
 tasks:
   core:
@@ -24,7 +31,7 @@ tasks:
       arguments :
         cmd: |
           # mkdir -p ~/.ssh && echo "Host *" > ~/.ssh/config && echo " StrictHostKeyChecking no" >> ~/.ssh/config
-          cp toolbox/.secrets/id_rsa /root/.ssh/id_rsa
+          cp {{ .TOOLBOX_SECRETS_DIR }}/{{ .TOOLBOX_ARTIFACT_ID_RSA_KEY_FILE }} /root/.ssh/id_rsa
           chmod 400 /root/.ssh/id_rsa
 
   TOOLBOX_ARTIFACT_REPO:
