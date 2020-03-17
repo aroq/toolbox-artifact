@@ -1,0 +1,103 @@
+#!/usr/bin/env variant
+# vi: ft=yaml
+
+autoenv: true
+bindParamsFromEnv: true
+
+parameters:
+- name: CI_COMMIT_REF_NAME
+  default: ""
+- name: TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS
+  default: tags
+
+tasks:
+  core:
+    import: /toolbox/toolbox-variant/variant-lib/utils.yaml
+  build:
+    # TODO: Move into deps
+    import: /toolbox/toolbox-artifact/variant-lib/utils.yaml
+
+  init:
+    steps:
+    - task: core.exec
+      arguments :
+        cmd: |
+          # mkdir -p ~/.ssh && echo "Host *" > ~/.ssh/config && echo " StrictHostKeyChecking no" >> ~/.ssh/config
+          cp toolbox/.secrets/id_rsa /root/.ssh/id_rsa
+          chmod 400 /root/.ssh/id_rsa
+
+  TOOLBOX_GIT_REF:
+    script: |
+      if [ !  -z ${TOOLBOX_GIT_REF} ]; then
+        echo "${TOOLBOX_GIT_REF}"
+      else
+        if [ -z ${CI_COMMIT_REF_NAME+x} ]; then
+          git symbolic-ref -q --short HEAD || git describe --tags --exact-match
+        else
+          echo ${CI_COMMIT_REF_NAME}
+        fi
+      fi
+
+  TOOLBOX_GIT_REPO:
+    script: |
+      if [ !  -z ${TOOLBOX_GIT_REPO} ]; then
+        echo "${TOOLBOX_GIT_REPO}"
+      else
+        git config --get remote.origin.url
+      fi
+
+  TOOLBOX_ARTIFACT_REPO:
+    script: |
+      if [ !  -z ${TOOLBOX_ARTIFACT_REPO} ]; then
+        echo "${TOOLBOX_ARTIFACT_REPO}"
+      else
+        git config --get remote.origin.url
+      fi
+
+  branch:
+    parameters:
+    - name: TOOLBOX_GIT_REPO
+    - name: TOOLBOX_GIT_REF
+    - name: TOOLBOX_ARTIFACT_REPO
+    tasks:
+      prepare:
+        steps:
+        - task: init
+        - task: build.commands.ref.prepare
+          arguments:
+            source_repo: "{{ .TOOLBOX_GIT_REPO }}"
+            source_ref: "{{ .TOOLBOX_GIT_REF }}"
+            target_repo: "{{ .TOOLBOX_ARTIFACT_REPO }}"
+            target_ref_suffix: "{{ .TOOLBOX_GIT_REF }}"
+      push:
+        steps:
+        - task: init
+        - task: build.commands.ref.push
+          arguments:
+            target_ref_suffix: "{{ .TOOLBOX_GIT_REF }}"
+
+  tag:
+    parameters:
+    - name: TOOLBOX_GIT_REPO
+    - name: TOOLBOX_GIT_REF
+    - name: TOOLBOX_ARTIFACT_REPO
+    tasks:
+      prepare:
+        steps:
+        - task: init
+        - task: build.commands.ref.prepare
+          arguments:
+            source_repo: "{{ .TOOLBOX_GIT_REPO }}"
+            source_ref: "{{ .TOOLBOX_GIT_REF }}"
+            target_repo: "{{ .TOOLBOX_ARTIFACT_REPO }}"
+            target_ref_suffix: "{{ .TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS }}"
+      push:
+        steps:
+        - task: init
+        - task: build.commands.ref.push
+          arguments:
+            target_ref_suffix: "{{ .TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS }}"
+        - task: build.commands.push_tag
+          arguments:
+            target_ref_suffix: "{{ .TOOLBOX_GIT_REF }}"
+
