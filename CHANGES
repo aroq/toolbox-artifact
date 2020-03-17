@@ -1,3 +1,6 @@
+Version 0.2.1:
+ - Fix TOOLBOX_ARTIFACT_REPO default task
+
 Version 0.2.0:
  - Fix tag creation
 
