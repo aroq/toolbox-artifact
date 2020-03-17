@@ -63,8 +63,8 @@ tasks:
 
   tag:
     parameters:
-    - name: TOOLBOX_GIT_REPO
-    - name: TOOLBOX_GIT_REF
+    - name: git.TOOLBOX_GIT_REPO
+    - name: git.TOOLBOX_GIT_REF
     - name: TOOLBOX_ARTIFACT_REPO
     tasks:
       prepare:
