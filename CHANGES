@@ -1,3 +1,6 @@
+Version 0.2.5:
+ - Add .gitignore.deliverables filter to rsync
+
 Version 0.2.4:
  - Update params
 
