@@ -56,13 +56,13 @@ tasks:
                 target_repo: "{{ .target_repo }}"
                 source_ref: "{{ .source_ref }}"
                 target_ref: "{{ .TOOLBOX_ARTIFACT_TARGET_BRANCH_PREFIX }}{{ .target_ref_suffix }}"
-            - task: build.commands.copy_source_to_target
           push:
             steps:
             - task: git.config.identity
               arguments:
                 dir: "{{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target"
                 args: ""
+            - task: build.commands.copy_source_to_target
             - task: build.commands.push_target
               arguments:
                 target_ref: "{{ .TOOLBOX_ARTIFACT_TARGET_BRANCH_PREFIX }}{{ .target_ref_suffix }}"
