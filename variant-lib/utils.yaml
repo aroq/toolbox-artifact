@@ -124,6 +124,7 @@ tasks:
 
               rsync -a \
                 --exclude=".git" \
+                --filter=":- .gitignore.deliverables" \
                 ${TOOLBOX_CICD_BUILD_SOURCE_DIR}/{{ .TOOLBOX_ARTIFACT_SOURCE_DIR_PATTERN }} \
                 {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
 
