@@ -1,3 +1,6 @@
+Version 0.2.3:
+ - Copy source to target in push step
+
 Version 0.2.2:
  - Update secrets dir
 
