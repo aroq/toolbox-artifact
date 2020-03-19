@@ -124,7 +124,7 @@ tasks:
 
               rsync -a \
                 --exclude=".git" \
-                --filter=":- .gitignore.deliverables" \
+                --filter=":- {{ .TOOLBOX_ARTIFACT_GITIGNORE_FILE }}" \
                 ${TOOLBOX_CICD_BUILD_SOURCE_DIR}/{{ .TOOLBOX_ARTIFACT_SOURCE_DIR_PATTERN }} \
                 {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
 
@@ -133,6 +133,9 @@ tasks:
               git rev-parse --short HEAD > {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target/REVISION_SOURCE
 
       push_target:
+        parameters:
+          - name: before_push_target_cmd
+            default: echo
         steps:
         - task: core.exec
           arguments:
@@ -147,6 +150,8 @@ tasks:
               else
                 echo "Provide {{ .TOOLBOX_ARTIFACT_GITIGNORE_FILE }}"
               fi
+
+              {{ .before_push_target_cmd }}
 
               git add --all;
               git commit --allow-empty --quiet --no-verify -m "Deliverables update";

@@ -25,15 +25,6 @@ tasks:
   build:
     import: /toolbox/toolbox-artifact/variant-lib/utils.yaml
 
-  init:
-    steps:
-    - task: core.exec
-      arguments :
-        cmd: |
-          # mkdir -p ~/.ssh && echo "Host *" > ~/.ssh/config && echo " StrictHostKeyChecking no" >> ~/.ssh/config
-          cp {{ .TOOLBOX_SECRETS_DIR }}/{{ .TOOLBOX_ARTIFACT_ID_RSA_KEY_FILE }} /root/.ssh/id_rsa
-          chmod 400 /root/.ssh/id_rsa
-
   TOOLBOX_ARTIFACT_REPO:
     script: |
       if [ !  -z ${TOOLBOX_ARTIFACT_REPO} ]; then
@@ -50,7 +41,6 @@ tasks:
     tasks:
       prepare:
         steps:
-        - task: init
         - task: build.commands.ref.prepare
           arguments:
             source_repo: "{{ .git.TOOLBOX_GIT_REPO }}"
@@ -59,7 +49,6 @@ tasks:
             target_ref_suffix: "{{ .git.TOOLBOX_GIT_REF }}"
       push:
         steps:
-        - task: init
         - task: build.commands.ref.push
           arguments:
             target_ref_suffix: "{{ .git.TOOLBOX_GIT_REF }}"
@@ -72,7 +61,6 @@ tasks:
     tasks:
       prepare:
         steps:
-        - task: init
         - task: build.commands.ref.prepare
           arguments:
             source_repo: "{{ .git.TOOLBOX_GIT_REPO }}"
@@ -81,7 +69,6 @@ tasks:
             target_ref_suffix: "{{ .TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS }}"
       push:
         steps:
-        - task: init
         - task: build.commands.ref.push
           arguments:
             target_ref_suffix: "{{ .TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS }}"
