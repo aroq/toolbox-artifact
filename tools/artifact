@@ -11,12 +11,6 @@ parameters:
 - name: TOOLBOX_ARTIFACT_TARGET_REF_SUFFIX_TAGS
   default: tags
 
-- name: TOOLBOX_ARTIFACT_ID_RSA_KEY_FILE
-  default: id_rsa
-
-- name: TOOLBOX_SECRETS_DIR
-  default: .secrets
-
 tasks:
   core:
     import: /toolbox/toolbox-variant/variant-lib/utils.yaml
