@@ -1,3 +1,6 @@
+Version 0.2.20:
+ - Add hooks
+
 Version 0.2.19:
  - Update parent image to aroq/toolbox-variant:0.1.38
 
