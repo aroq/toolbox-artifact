@@ -133,26 +133,12 @@ tasks:
               git rev-parse --short HEAD > {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target/REVISION_SOURCE
 
       push_target:
-        parameters:
-          - name: before_push_target_cmd
-            default: echo
         steps:
         - task: core.exec
           arguments:
             title: "Push deliverables to the target branch \"{{ .target_ref }}\""
+            hook_context: toolbox_artifact_push_target
             cmd: |
-              cd {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target;
-              # TODO: Check if there are any changes. No need to push if no changes.
-
-              if [[ -f {{ .TOOLBOX_ARTIFACT_GITIGNORE_FILE }} ]]; then
-                rm -f .gitignore
-                cp {{ .TOOLBOX_ARTIFACT_GITIGNORE_FILE }} .gitignore
-              else
-                echo "Provide {{ .TOOLBOX_ARTIFACT_GITIGNORE_FILE }}"
-              fi
-
-              {{ .before_push_target_cmd }}
-
               git add --all;
               git commit --allow-empty --quiet --no-verify -m "Deliverables update";
               git push origin {{ .target_ref }};
