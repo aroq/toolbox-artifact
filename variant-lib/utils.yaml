@@ -133,6 +133,7 @@ tasks:
               git rev-parse --short HEAD > {{ .TOOLBOX_ARTIFACT_WORKING_DIR }}/target/REVISION_SOURCE
 
       push_target:
+        autoenv: true
         steps:
         - task: core.exec
           arguments:
