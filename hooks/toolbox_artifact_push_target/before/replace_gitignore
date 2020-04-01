@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+cd "${TOOLBOX_ARTIFACT_WORKING_DIR}/target" || exit
+
+if [[ -f ${TOOLBOX_ARTIFACT_GITIGNORE_FILE} ]]; then
+  rm -f .gitignore
+  cp "${TOOLBOX_ARTIFACT_GITIGNORE_FILE}" .gitignore
+else
+  echo "Provide ${TOOLBOX_ARTIFACT_GITIGNORE_FILE}"
+fi

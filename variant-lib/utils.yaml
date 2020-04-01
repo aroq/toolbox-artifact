@@ -140,6 +140,7 @@ tasks:
             title: "Push deliverables to the target branch \"{{ .target_ref }}\""
             hook_context: toolbox_artifact_push_target
             cmd: |
+              cd "${TOOLBOX_ARTIFACT_WORKING_DIR}/target" || exit
               git add --all;
               git commit --allow-empty --quiet --no-verify -m "Deliverables update";
               git push origin {{ .target_ref }};
