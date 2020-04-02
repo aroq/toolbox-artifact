@@ -1,5 +1,5 @@
 # Main stage
-FROM aroq/toolbox-variant:0.1.40
+FROM aroq/toolbox-variant:0.1.41
 
 COPY rootfs/ /
 RUN chown root:root /root/.ssh/config && chmod 600 /root/.ssh/config
