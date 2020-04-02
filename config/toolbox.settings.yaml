@@ -1,5 +1,5 @@
 config:
   toolbox-artifact:
     from: config.toolbox-variant
-    image: aroq/toolbox-artifact:0.2.22
+    image: aroq/toolbox-artifact:0.2.24
     entrypoint_override: true
