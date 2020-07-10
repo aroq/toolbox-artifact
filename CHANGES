@@ -1,3 +1,6 @@
+Version 0.2.29:
+ - Exclude .lfsconfig files from the artifact
+
 Version 0.2.27:
  - Change parent image
 
